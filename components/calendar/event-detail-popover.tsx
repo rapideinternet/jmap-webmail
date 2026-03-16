@@ -249,9 +249,13 @@ export function EventDetailPopover({
   );
 
   const handleDeleteClick = useCallback(async () => {
+    const deleteMessage = participants.length > 0
+      ? `${t("form.delete_confirm")} ${t("participants.cancel_notification")}`
+      : t("form.delete_confirm");
+
     const confirmed = await confirm({
       title: t("detail.delete_confirm"),
-      message: t("form.delete_confirm"),
+      message: deleteMessage,
       confirmText: t("events.delete"),
       cancelText: t("form.cancel"),
       variant: "destructive",
@@ -259,9 +263,9 @@ export function EventDetailPopover({
 
     if (!confirmed) return;
 
-    onClose();
     onDelete();
-  }, [confirm, onClose, onDelete, t]);
+    onClose();
+  }, [confirm, onClose, onDelete, participants, t]);
 
   const hasParticipants = participants.length > 0;
 

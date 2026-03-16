@@ -4,8 +4,7 @@ import { useEffect, useId } from "react";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { AlertTriangle, Trash2, X } from "lucide-react";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -70,20 +69,7 @@ export function ConfirmDialog({
           className="absolute top-3 right-3 p-1 rounded hover:bg-muted transition-colors flex-shrink-0"
           aria-label={resolvedCancelText}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-4 h-4 text-muted-foreground"
-            aria-hidden="true"
-          >
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-          </svg>
+          <X className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
         </button>
         <div className="p-6">
           <div className="flex items-start gap-4">
@@ -122,9 +108,6 @@ export function ConfirmDialog({
                 onClose();
               }
             }}
-            className={cn(
-              variant === "destructive" && "bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 shadow-sm"
-            )}
           >
             {variant === "destructive" && <Trash2 className="w-4 h-4 mr-2" />}
             {resolvedConfirmText}

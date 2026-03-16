@@ -331,10 +331,13 @@ export function EventModal({
 
   const handleDelete = useCallback(async () => {
     if (!event || !onDelete) return;
+    const deleteMessage = hasParticipants
+      ? `${t("form.delete_confirm")} ${t("participants.cancel_notification")}`
+      : t("form.delete_confirm");
 
     const confirmed = await confirm({
       title: t("detail.delete_confirm"),
-      message: t("form.delete_confirm"),
+      message: deleteMessage,
       confirmText: t("events.delete"),
       cancelText: t("form.cancel"),
       variant: "destructive",
