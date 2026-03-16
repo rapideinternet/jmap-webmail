@@ -21,6 +21,7 @@ This document tracks the development status and planned features for JMAP Webmai
 - [x] OAuth2/OIDC with PKCE (opt-in SSO, session persistence, RP-initiated logout)
 - [x] External IdP support via explicit issuer URL (Keycloak, Authentik, etc.)
 - [x] "Remember me" session persistence for Basic Auth (AES-256-GCM encrypted httpOnly cookie)
+- [x] OAuth-only mode (`OAUTH_ONLY` env var to hide basic auth form)
 
 ### JMAP Server Connection
 - [x] Session establishment and keep-alive
@@ -202,6 +203,27 @@ This document tracks the development status and planned features for JMAP Webmai
 ### Email Display
 - [x] Proper email layout without horizontal scroll or clipping
 - [x] Blocked image container collapsing (no empty spaces in newsletters)
+- [x] Sandboxed iframe rendering for rich HTML emails (CSS isolation from app)
+- [x] Adaptive rendering: iframe for complex HTML, inline for plain text/simple HTML
+- [x] SPF/DKIM/DMARC tooltips with plain-language security explanations
+- [x] Expandable sender info panel (contact lookup, add-to-contacts, search sender)
+
+### Mobile & Touch
+- [x] Bottom action bar for email actions (Reply, Reply All, Archive, Delete, More)
+- [x] Long-press context menu with haptic feedback (300ms, cancels on scroll)
+- [x] Touch-friendly context menu submenus (tap-to-expand on touch devices)
+- [x] CSS-first responsive layout (instant orientation changes, no JS-driven blink)
+- [x] Click-to-toggle more-actions dropdown (was hover-only)
+
+### Sidebar & Density
+- [x] Tag counts section with color-coded tags and email counts
+- [x] Empty folder option for Junk/Trash (batch delete with progress)
+- [x] Extra-compact density option (28px rows, 44px on touch devices)
+- [x] Resizable sidebar via drag handle (180-400px, keyboard accessible, persisted)
+
+### API Robustness
+- [x] Exponential backoff retry for transient JMAP failures (429, 502, 503, 504)
+- [x] Opt-out for blob downloads, uploads, and polling (no double-request risk)
 
 ### Testing
 - [x] Unit tests for validation utilities (57 tests)
@@ -222,6 +244,8 @@ This document tracks the development status and planned features for JMAP Webmai
 - [x] Unit tests for calendar participants (26 tests)
 - [x] Unit tests for template utilities (48 tests)
 - [x] Unit tests for OAuth PKCE and discovery (14 tests)
+- [x] Unit tests for iframe rendering detection (12 tests)
+- [x] Unit tests for API retry with backoff (9 tests)
 - [x] XSS attack vector testing
 - [x] Playwright E2E framework setup
 

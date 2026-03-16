@@ -16,6 +16,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useIdentityStore } from "@/stores/identity-store";
 import { useUIStore } from "@/stores/ui-store";
+import { useContactStore } from "@/stores/contact-store";
 import { useDeviceDetection } from "@/hooks/use-media-query";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { debug } from "@/lib/debug";
@@ -91,7 +92,10 @@ export default function Home() {
     clearSearchFilters,
     toggleAdvancedSearch,
     advancedSearch,
+    fetchTagCounts,
   } = useEmailStore();
+
+  const contactStore = useContactStore();
 
   // Keyboard shortcuts handlers
   const keyboardHandlers = useMemo(() => ({
@@ -115,13 +119,7 @@ export default function Home() {
       // Email is already opened when selected
     },
     onCloseEmail: () => {
-      selectEmail(null);
-      if (isMobile) {
-        setActiveView("list");
-      }
-      if (isTablet) {
-        setTabletListVisible(true);
-      }
+      dismissViewer();
     },
     onReply: () => {
       if (selectedEmail) handleReply();
@@ -267,6 +265,9 @@ export default function Home() {
             await fetchEmails(client);
           }
 
+          // Fetch tag counts in the background
+          fetchTagCounts(client);
+
           // Setup push notifications after successful data load
           try {
             // Register state change callback
@@ -298,7 +299,7 @@ export default function Home() {
         client.closePushNotifications();
       }
     };
-  }, [isAuthenticated, client, mailboxes.length, fetchMailboxes, fetchEmails, fetchQuota, handleStateChange, setPushConnected]);
+  }, [isAuthenticated, client, mailboxes.length, fetchMailboxes, fetchEmails, fetchQuota, fetchTagCounts, handleStateChange, setPushConnected]);
 
   // Handle mark-as-read with delay based on settings
   useEffect(() => {
@@ -367,6 +368,13 @@ export default function Home() {
     };
   }, [isMobile, isTablet, sidebarOpen]);
 
+  // Reset tablet list visibility when crossing to desktop
+  useEffect(() => {
+    if (!isMobile && !isTablet) {
+      setTabletListVisible(true);
+    }
+  }, [isMobile, isTablet, setTabletListVisible]);
+
   const handleEmailSend = async (data: {
     to: string[];
     cc: string[];
@@ -417,12 +425,18 @@ export default function Home() {
     setShowComposer(true);
   };
 
+  const dismissViewer = () => {
+    selectEmail(null);
+    if (isMobile) setActiveView("list");
+    if (isTablet) setTabletListVisible(true);
+  };
+
   const handleDelete = async () => {
     if (!client || !selectedEmail) return;
 
     try {
       await deleteEmail(client, selectedEmail.id);
-      selectEmail(null);
+      dismissViewer();
     } catch (error) {
       console.error("Failed to delete email:", error);
     }
@@ -436,7 +450,7 @@ export default function Home() {
     if (archiveMailbox) {
       try {
         await moveToMailbox(client, selectedEmail.id, archiveMailbox.id);
-        selectEmail(null);
+        dismissViewer();
       } catch (error) {
         console.error("Failed to archive email:", error);
       }
@@ -655,11 +669,6 @@ export default function Home() {
       setActiveView("viewer");
     }
 
-    // On tablet, hide the list to maximize viewer space
-    if (isTablet) {
-      setTabletListVisible(false);
-    }
-
     // Fetch the full content
     try {
       // Find selected mailbox to determine accountId (for shared folders)
@@ -670,7 +679,7 @@ export default function Home() {
       const fullEmail = await client.getEmail(email.id, accountId);
       if (fullEmail) {
         selectEmail(fullEmail);
-        // Mark-as-read logic is now handled by useEffect
+        if (isTablet) setTabletListVisible(false);
       }
     } catch (error) {
       console.error('Failed to fetch email content:', error);
@@ -790,12 +799,12 @@ export default function Home() {
               "flex flex-col h-full bg-background border-r border-border",
               // Mobile: full width, hidden when viewing email
               "max-md:flex-1 max-md:border-r-0",
-              isMobile && activeView !== "list" && "max-md:hidden",
-              // Tablet/Desktop: fixed width with collapse animation
-              "md:w-80 lg:w-96 md:flex-shrink-0 md:shadow-sm",
-              "transition-all duration-200 ease-out",
-              // Tablet: collapse when email selected
-              isTablet && !tabletListVisible && "md:w-0 md:opacity-0 md:overflow-hidden md:border-r-0"
+              activeView !== "list" && "max-md:hidden",
+              // Tablet: full width when no email, fixed width when viewing
+              !selectedEmail ? "md:flex-1 md:border-r-0" : "md:w-80 lg:w-96 md:flex-shrink-0",
+              "md:shadow-sm",
+              // Collapse list when viewing email on tablet (tabletListVisible only toggled in tablet range)
+              selectedEmail && !tabletListVisible && "md:w-0 md:opacity-0 md:overflow-hidden md:border-r-0"
             )}
           >
             {/* Mobile Header for List View */}
@@ -886,9 +895,11 @@ export default function Home() {
               "flex flex-col h-full bg-background",
               // Mobile: full screen overlay when active
               "max-md:fixed max-md:inset-0 max-md:z-30",
-              isMobile && activeView !== "viewer" && "max-md:hidden",
-              // Tablet/Desktop: flex grow, min-w-0 allows truncation of long subjects
-              "md:flex-1 md:min-w-0 md:relative"
+              activeView !== "viewer" && "max-md:hidden",
+              // Tablet/Desktop: flex grow
+              "md:flex-1 md:min-w-0 md:relative",
+              // Hide viewer when no email selected (list takes full width)
+              !selectedEmail && "max-lg:hidden"
             )}
           >
             {/* Mobile Conversation View - shown when thread is selected on mobile */}
@@ -943,6 +954,30 @@ export default function Home() {
                       selectEmail(null);
                     }}
                     onShowShortcuts={() => setShowShortcutsModal(true)}
+                    onSearchSender={(email) => {
+                      const query = `from:${email}`;
+                      setSearchQuery(query);
+                      if (client) {
+                        searchEmails(client, query);
+                      }
+                    }}
+                    onAddContact={(name, email) => {
+                      if (client && contactStore.supportsSync) {
+                        contactStore.createContact(client, {
+                          kind: 'individual',
+                          name: name ? { components: [{ kind: 'given', value: name }], isOrdered: true } : undefined,
+                          emails: { email0: { address: email } },
+                        });
+                      } else {
+                        contactStore.addLocalContact({
+                          id: `local-${crypto.randomUUID()}`,
+                          addressBookIds: {},
+                          kind: 'individual',
+                          name: name ? { components: [{ kind: 'given', value: name }], isOrdered: true } : undefined,
+                          emails: { email0: { address: email } },
+                        });
+                      }
+                    }}
                     currentUserEmail={client?.["username"]}
                     currentUserName={client?.["username"]?.split("@")[0]}
                     currentMailboxRole={mailboxes.find(m => m.id === selectedMailbox)?.role}
@@ -955,7 +990,7 @@ export default function Home() {
           </div>
 
           {/* Mobile Bottom Navigation */}
-          {isMobile && activeView !== "viewer" && (
+          {isMobile && (
             <NavigationRail orientation="horizontal" />
           )}
         </div>

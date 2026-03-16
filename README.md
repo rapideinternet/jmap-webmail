@@ -13,23 +13,28 @@ Stalwart is a mail server written in Rust with native JMAP support, not IMAP/SMT
 ### Email
 
 - Read, compose, reply, reply-all, and forward
-- HTML rendering with DOMPurify sanitization
+- HTML rendering with DOMPurify sanitization and sandboxed iframe for complex emails
 - Attachment upload and download
 - Draft auto-save with discard confirmation
 - Threading with inline expansion
 - Mark as read/unread, star/unstar
 - Archive and delete with configurable behavior
-- Color tags/labels
+- Color tags/labels with sidebar counts
 - Search with JMAP filter panel, search chips, cross-mailbox queries
 - Virtual scrolling for large lists
+- Empty folder (one-click empty Junk/Trash with batch progress)
+- Sender info panel (click sender name to view contact, add to contacts, search)
+- API retry with exponential backoff for transient failures
 
 ### Interface
 
 - Three-pane layout with dark and light themes
-- Responsive (desktop sidebar + mobile bottom tab bar)
+- Responsive (desktop sidebar + mobile bottom tab bar + mobile action bar)
 - Keyboard shortcuts
 - Drag-and-drop email organization
-- Right-click context menus
+- Right-click context menus (long-press on touch devices)
+- Extra-compact, compact, regular, and comfortable density options
+- Resizable sidebar (drag, touch, keyboard)
 - Animations that respect `prefers-reduced-motion`
 - Infinite scroll pagination
 - Toast notifications with undo support
@@ -107,7 +112,7 @@ Stalwart is a mail server written in Rust with native JMAP support, not IMAP/SMT
 - External content blocked by default
 - Trusted senders list for automatic image loading
 - HTML sanitization (DOMPurify)
-- SPF/DKIM/DMARC status indicators
+- SPF/DKIM/DMARC status indicators with plain-language tooltips
 - Session-based auth, no password storage by default
 - TOTP two-factor authentication
 - "Remember me" with AES-256-GCM encrypted httpOnly cookie (opt-in)
