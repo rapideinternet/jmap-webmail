@@ -59,6 +59,7 @@ interface ContextMenuItemProps {
   disabled?: boolean;
   destructive?: boolean;
   shortcut?: string;
+  style?: React.CSSProperties;
 }
 
 export function ContextMenuItem({
@@ -68,11 +69,13 @@ export function ContextMenuItem({
   disabled = false,
   destructive = false,
   shortcut,
+  style,
 }: ContextMenuItemProps) {
   return (
     <button
       role="menuitem"
       disabled={disabled}
+      style={style}
       className={cn(
         "w-full px-3 py-2 text-sm text-left flex items-center gap-2",
         "transition-colors duration-100",
@@ -113,9 +116,14 @@ export function ContextMenuSubMenu({
 }: ContextMenuSubMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [subMenuPosition, setSubMenuPosition] = useState<"right" | "left">("right");
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
   const subMenuRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches);
+  }, []);
 
   useEffect(() => {
     if (isOpen && itemRef.current) {
@@ -135,6 +143,7 @@ export function ContextMenuSubMenu({
   }, []);
 
   const handleMouseEnter = () => {
+    if (isTouchDevice) return;
     if (closeTimerRef.current) {
       clearTimeout(closeTimerRef.current);
       closeTimerRef.current = null;
@@ -143,9 +152,16 @@ export function ContextMenuSubMenu({
   };
 
   const handleMouseLeave = () => {
+    if (isTouchDevice) return;
     closeTimerRef.current = setTimeout(() => {
       setIsOpen(false);
     }, 150);
+  };
+
+  const handleClick = () => {
+    if (isTouchDevice) {
+      setIsOpen(prev => !prev);
+    }
   };
 
   return (
@@ -164,6 +180,7 @@ export function ContextMenuSubMenu({
         role="menuitem"
         aria-haspopup="true"
         aria-expanded={isOpen}
+        onClick={handleClick}
       >
         {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
         <span className="flex-1">{label}</span>
