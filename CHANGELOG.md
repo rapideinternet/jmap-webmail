@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.3 (2026-03-16)
+
+### Fixes
+
+- **Calendar**: Fix crash when opening calendar with events that have no duration field (e.g. all-day events from certain clients) (#31)
+- **Sieve filters**: Fix "Invalid property or value" error when saving filters — use `onSuccessActivateScript` per RFC 9661 instead of setting `isActive` directly (#21)
+- **Security**: Update dompurify 3.3.1→3.3.3 (XSS fix), undici 7.22.0→7.24.4 (WebSocket crash, CRLF injection, HTTP smuggling), flatted 3.3.3→3.4.1 (DoS fix)
+
 ## 1.1.2 (2026-03-02)
 
 ### Fixes
