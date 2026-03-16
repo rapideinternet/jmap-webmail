@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.1 (2026-03-16)
+
+### Fixes
+
+- **Navigation**: Bottom navigation bar now shows on tablet/landscape breakpoint (768-1023px) where neither mobile nor desktop nav was rendering (#30)
+
 ## 1.3.0 (2026-03-16)
 
 ### Features
