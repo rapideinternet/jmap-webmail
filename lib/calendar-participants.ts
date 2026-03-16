@@ -103,6 +103,7 @@ export function buildParticipantMap(
 ): Record<string, Partial<CalendarParticipant>> {
   const participants: Record<string, Partial<CalendarParticipant>> = {};
 
+  // Only add organizer when we can map it to a valid calendar address.
   if (organizer?.email) {
     const organizerAddress = toCalendarAddress(organizer.email);
     participants[organizerAddress] = {
