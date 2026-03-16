@@ -89,6 +89,67 @@ export function CalendarMonthView({
 
   const [dropDayKey, setDropDayKey] = useState<string | null>(null);
 
+  const getRoundedUpHour = useCallback((date: Date): number => {
+    const rounded = new Date(date);
+    if (
+      rounded.getMinutes() > 0 ||
+      rounded.getSeconds() > 0 ||
+      rounded.getMilliseconds() > 0
+    ) {
+      rounded.setHours(rounded.getHours() + 1, 0, 0, 0);
+    } else {
+      rounded.setMinutes(0, 0, 0);
+    }
+    return rounded.getHours();
+  }, []);
+
+  const getBusyIntervalsForDay = useCallback((day: Date, dayEvents: CalendarEvent[]) => {
+    const dayStart = new Date(day);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setDate(dayEnd.getDate() + 1);
+
+    const intervals: Array<[number, number]> = [];
+    for (const ev of dayEvents) {
+      if (ev.showWithoutTime) continue;
+      const evStart = new Date(ev.start);
+      const evEnd = getEventEndDate(ev);
+      if (evEnd <= dayStart || evStart >= dayEnd) continue;
+
+      const clippedStart = evStart < dayStart ? dayStart : evStart;
+      const clippedEnd = evEnd > dayEnd ? dayEnd : evEnd;
+      const startMin = Math.max(0, Math.floor((clippedStart.getTime() - dayStart.getTime()) / 60000));
+      const endMin = Math.min(24 * 60, Math.ceil((clippedEnd.getTime() - dayStart.getTime()) / 60000));
+      if (endMin > startMin) intervals.push([startMin, endMin]);
+    }
+    return intervals;
+  }, []);
+
+  const findSuggestedStart = useCallback((day: Date, dayEvents: CalendarEvent[]) => {
+    const now = new Date();
+    const startHour = isToday(day) ? getRoundedUpHour(now) : 9;
+    const fallbackHour = getRoundedUpHour(now);
+    const busyIntervals = getBusyIntervalsForDay(day, dayEvents);
+
+    const isSlotFree = (hour: number) => {
+      const startMin = hour * 60;
+      const endMin = startMin + 60;
+      return busyIntervals.every(([busyStart, busyEnd]) => endMin <= busyStart || startMin >= busyEnd);
+    };
+
+    for (let hour = Math.max(0, startHour); hour < 24; hour++) {
+      if (isSlotFree(hour)) {
+        const start = new Date(day);
+        start.setHours(hour, 0, 0, 0);
+        return start;
+      }
+    }
+
+    const fallback = new Date(day);
+    fallback.setHours(Math.min(23, Math.max(0, fallbackHour)), 0, 0, 0);
+    return fallback;
+  }, [getBusyIntervalsForDay, getRoundedUpHour]);
+
   const handleCellDragOver = useCallback((e: DragEvent<HTMLDivElement>, dayKey: string) => {
     if (!e.dataTransfer.types.includes("application/x-calendar-event")) return;
     e.preventDefault();
@@ -153,7 +214,10 @@ export function CalendarMonthView({
                   aria-label={fullDateLabel}
                   onClick={() => {
                     onSelectDate(day);
-                    onCreateAtTime(day);
+                    const suggestedStart = findSuggestedStart(day, dayEvents);
+                    const suggestedEnd = new Date(suggestedStart);
+                    suggestedEnd.setHours(suggestedEnd.getHours() + 1);
+                    onCreateAtTime(suggestedStart, suggestedEnd);
                   }}
                   onDragOver={(e) => handleCellDragOver(e, key)}
                   onDragLeave={handleCellDragLeave}
