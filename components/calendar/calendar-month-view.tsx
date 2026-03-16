@@ -89,6 +89,7 @@ export function CalendarMonthView({
 
   const [dropDayKey, setDropDayKey] = useState<string | null>(null);
 
+  // Round up to the next whole hour, keeping exact-hour times unchanged.
   const getRoundedUpHour = useCallback((date: Date): number => {
     const rounded = new Date(date);
     if (
@@ -103,6 +104,7 @@ export function CalendarMonthView({
     return rounded.getHours();
   }, []);
 
+  // Build busy minute ranges for this specific day, clipped to day boundaries.
   const getBusyIntervalsForDay = useCallback((day: Date, dayEvents: CalendarEvent[]) => {
     const dayStart = new Date(day);
     dayStart.setHours(0, 0, 0, 0);
@@ -125,6 +127,7 @@ export function CalendarMonthView({
     return intervals;
   }, []);
 
+  // Pick the first free 1-hour slot; fallback to the next whole hour when fully occupied.
   const findSuggestedStart = useCallback((day: Date, dayEvents: CalendarEvent[]) => {
     const now = new Date();
     const startHour = isToday(day) ? getRoundedUpHour(now) : 9;
