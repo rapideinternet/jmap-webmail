@@ -548,6 +548,7 @@ export default function CalendarPage() {
               calendars={calendars}
               onSelectDate={handleSelectDate}
               onSelectEvent={handleSelectEvent}
+              onCreateAtTime={openCreateModal}
               firstDayOfWeek={firstDayOfWeek}
             />
           );

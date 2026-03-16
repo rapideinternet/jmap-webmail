@@ -20,6 +20,7 @@ interface CalendarMonthViewProps {
   calendars: Calendar[];
   onSelectDate: (date: Date) => void;
   onSelectEvent: (event: CalendarEvent, anchorRect: DOMRect) => void;
+  onCreateAtTime: (date: Date, endDate?: Date) => void;
   firstDayOfWeek?: number;
 }
 
@@ -29,6 +30,7 @@ export function CalendarMonthView({
   calendars,
   onSelectDate,
   onSelectEvent,
+  onCreateAtTime,
   firstDayOfWeek = 1,
 }: CalendarMonthViewProps) {
   const t = useTranslations("calendar");
@@ -149,7 +151,10 @@ export function CalendarMonthView({
                   role="gridcell"
                   aria-selected={selected}
                   aria-label={fullDateLabel}
-                  onClick={() => onSelectDate(day)}
+                  onClick={() => {
+                    onSelectDate(day);
+                    onCreateAtTime(day);
+                  }}
                   onDragOver={(e) => handleCellDragOver(e, key)}
                   onDragLeave={handleCellDragLeave}
                   onDrop={(e) => handleCellDrop(e, day)}
