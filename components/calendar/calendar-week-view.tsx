@@ -92,7 +92,8 @@ export function CalendarWeekView({
   useEffect(() => {
     if (scrollRef.current) {
       const now = new Date();
-      scrollRef.current.scrollTop = Math.max(0, (now.getHours() - 1) * HOUR_HEIGHT);
+      const headerHeight = scrollRef.current.querySelector<HTMLElement>(".sticky")?.offsetHeight ?? 0;
+      scrollRef.current.scrollTop = Math.max(0, headerHeight + (now.getHours() - 1) * HOUR_HEIGHT);
     }
   }, []);
 
