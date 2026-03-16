@@ -73,6 +73,15 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
+.btn-destructive {
+  background-color: var(--color-destructive);
+  color: var(--color-destructive-foreground);
+}
+
+.btn-destructive:hover {
+  background-color: color-mix(in srgb, var(--color-destructive) 90%, black);
+}
+
 /* Minimalist scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
