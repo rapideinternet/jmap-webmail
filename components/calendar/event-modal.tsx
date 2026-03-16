@@ -59,6 +59,7 @@ function buildDuration(startDate: Date, endDate: Date): string {
 type RecurrenceOption = "none" | "daily" | "weekly" | "monthly" | "yearly";
 type AlertOption = "none" | "at_time" | "5" | "15" | "30" | "60" | "1440";
 
+// Build an RFC5545-style UID (`id@domain`) using organizer email domain when available.
 function generateUid(seedEmail?: string): string {
   const domainFromEmail = seedEmail?.includes("@") ? seedEmail.split("@")[1] : "";
   const host = (typeof window !== "undefined" && window.location.hostname) ? window.location.hostname : "";
