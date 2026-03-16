@@ -1182,7 +1182,7 @@
     "events": {
       "create": "Evenement aanmaken",
       "edit": "Evenement bewerken",
-      "delete": "Evenement verwijderen",
+      "delete": "Verwijderen",
       "details": "Evenementdetails",
       "no_events": "Geen evenementen",
       "all_day": "Hele dag",
