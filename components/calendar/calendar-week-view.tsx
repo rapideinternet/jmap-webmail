@@ -145,18 +145,20 @@ export function CalendarWeekView({
               const dayAllDay = allDayEvents.get(key) || [];
               return (
                 <div key={key} className="bg-background p-0.5 min-h-[28px]">
-                  {dayAllDay.map((ev) => {
-                    const calId = Object.keys(ev.calendarIds)[0];
-                    return (
-                      <EventCard
-                        key={ev.id}
-                        event={ev}
-                        calendar={calendarMap.get(calId)}
-                        variant="chip"
-                        onClick={(rect) => onSelectEvent(ev, rect)}
-                      />
-                    );
-                  })}
+                  <div className="space-y-0.5">
+                    {dayAllDay.map((ev) => {
+                      const calId = Object.keys(ev.calendarIds)[0];
+                      return (
+                        <EventCard
+                          key={ev.id}
+                          event={ev}
+                          calendar={calendarMap.get(calId)}
+                          variant="chip"
+                          onClick={(rect) => onSelectEvent(ev, rect)}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
