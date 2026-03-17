@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { MoreVertical, Users, Download, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import {
+  ContextMenu,
+  ContextMenuItem,
+  ContextMenuSeparator,
+} from "@/components/ui/context-menu";
 
 interface ContactBulkActionsMenuProps {
   onBulkAddToGroup: () => void;
@@ -19,26 +23,56 @@ export function ContactBulkActionsMenu({
 }: ContactBulkActionsMenuProps) {
   const t = useTranslations("contacts");
   const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+
+  const updateMenuPosition = () => {
+    const triggerRect = triggerRef.current?.getBoundingClientRect();
+    if (!triggerRect) return;
+    const menuWidth = 200;
+    const viewportPadding = 8;
+    const x = Math.max(
+      viewportPadding,
+      Math.min(triggerRect.right - menuWidth, window.innerWidth - menuWidth - viewportPadding)
+    );
+    const y = Math.min(triggerRect.bottom + 4, window.innerHeight - viewportPadding);
+    setPosition({ x, y });
+  };
 
   useEffect(() => {
     if (!isOpen) return;
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (menuRef.current?.contains(target)) return;
+      if (triggerRef.current?.contains(target)) return;
+      setIsOpen(false);
+    };
+
+    const handleResize = () => {
+      if (!isOpen) return;
+      if (!triggerRef.current) {
         setIsOpen(false);
+        return;
       }
+      updateMenuPosition();
     };
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setIsOpen(false);
     };
 
+    updateMenuPosition();
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("scroll", handleResize, true);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("scroll", handleResize, true);
     };
   }, [isOpen]);
 
@@ -47,12 +81,22 @@ export function ContactBulkActionsMenu({
     setIsOpen(false);
   };
 
+  const handleToggle = () => {
+    if (isOpen) {
+      setIsOpen(false);
+      return;
+    }
+    updateMenuPosition();
+    setIsOpen(true);
+  };
+
   return (
-    <div ref={containerRef} className="relative">
+    <div>
       <Button
+        ref={triggerRef}
         variant="outline"
         size="sm"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={handleToggle}
         className="h-7 text-xs px-2"
         aria-expanded={isOpen}
         aria-haspopup="menu"
@@ -62,41 +106,30 @@ export function ContactBulkActionsMenu({
         <MoreVertical className="w-3.5 h-3.5 ml-1.5" />
       </Button>
 
-      {isOpen && (
-        <div
-          role="menu"
-          className={cn(
-            "absolute right-0 top-full mt-1 z-20 min-w-[180px]",
-            "rounded-md border border-border bg-background shadow-lg",
-            "py-1 animate-in fade-in-0 zoom-in-95 duration-100"
-          )}
-        >
-          <button
-            role="menuitem"
-            onClick={() => handleAction(onBulkAddToGroup)}
-            className="w-full px-3 py-2 text-left text-xs hover:bg-muted flex items-center gap-2"
-          >
-            <Users className="w-3.5 h-3.5" />
-            {t("bulk.add_to_group")}
-          </button>
-          <button
-            role="menuitem"
-            onClick={() => handleAction(onBulkExport)}
-            className="w-full px-3 py-2 text-left text-xs hover:bg-muted flex items-center gap-2"
-          >
-            <Download className="w-3.5 h-3.5" />
-            {t("bulk.export")}
-          </button>
-          <button
-            role="menuitem"
-            onClick={() => handleAction(onBulkDelete)}
-            className="w-full px-3 py-2 text-left text-xs text-destructive hover:bg-destructive/10 flex items-center gap-2"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            {t("bulk.delete")}
-          </button>
-        </div>
-      )}
+      <ContextMenu
+        ref={menuRef}
+        isOpen={isOpen}
+        position={position}
+        onClose={() => setIsOpen(false)}
+      >
+        <ContextMenuItem
+          icon={Users}
+          label={t("bulk.add_to_group")}
+          onClick={() => handleAction(onBulkAddToGroup)}
+        />
+        <ContextMenuItem
+          icon={Download}
+          label={t("bulk.export")}
+          onClick={() => handleAction(onBulkExport)}
+        />
+        <ContextMenuSeparator />
+        <ContextMenuItem
+          icon={Trash2}
+          label={t("bulk.delete")}
+          onClick={() => handleAction(onBulkDelete)}
+          destructive
+        />
+      </ContextMenu>
     </div>
   );
 }
