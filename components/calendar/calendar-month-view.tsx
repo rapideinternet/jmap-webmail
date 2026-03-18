@@ -131,7 +131,7 @@ export function CalendarMonthView({
   const findSuggestedStart = useCallback((day: Date, dayEvents: CalendarEvent[]) => {
     const now = new Date();
     const startHour = isToday(day) ? getRoundedUpHour(now) : 9;
-    const fallbackHour = getRoundedUpHour(now);
+    const fallbackHour = isToday(day) ? getRoundedUpHour(now) : 9;
     const busyIntervals = getBusyIntervalsForDay(day, dayEvents);
 
     const isSlotFree = (hour: number) => {
