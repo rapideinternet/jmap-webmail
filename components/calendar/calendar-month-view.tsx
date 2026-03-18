@@ -217,6 +217,9 @@ export function CalendarMonthView({
                   aria-label={fullDateLabel}
                   onClick={() => {
                     onSelectDate(day);
+                  }}
+                  onDoubleClick={() => {
+                    onSelectDate(day);
                     const suggestedStart = findSuggestedStart(day, dayEvents);
                     const suggestedEnd = new Date(suggestedStart);
                     suggestedEnd.setHours(suggestedEnd.getHours() + 1);
